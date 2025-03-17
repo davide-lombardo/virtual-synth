@@ -22,7 +22,7 @@ const StyledComponentsVariables = styled.div`
   --control-bg-color: #2a2a2a;
   --control-padding: 1rem;
   --control-border-radius: 10px;
-  --control-gap: 0.5rem;
+  --control-gap: 1.5rem;
 
   --text-color: #ccc;
   --text-size-small: 0.9rem;
@@ -34,7 +34,7 @@ const StyledComponentsVariables = styled.div`
   --slider-track-width: 150px;
   --slider-track-height: 6px;
   --slider-track-color: #555;
-  --slider-label-width: 100px;
+  --slider-label-width: 40px;
 
   --slider-thumb-width: 20px;
   --slider-thumb-height: 20px;
@@ -81,23 +81,27 @@ const SectionLabel = styled.div`
 const SliderContainer = styled.div`
   display: flex;
   align-items: center;
+  width: 100%;
+  gap: var(--control-gap);
 `;
 
 const SliderLabel = styled.label`
   font-size: var(--text-size-normal);
   color: var(--text-color);
   min-width: var(--slider-label-width);
+  flex-shrink: 0;
   display: flex;
   align-items: center;
 `;
 
 const SliderTrack = styled.div`
-  width: var(--slider-track-width);
+  width: 100%;
   height: var(--slider-track-height);
   background: var(--slider-track-color);
   border-radius: calc(var(--slider-track-height) / 2);
   position: relative;
   box-shadow: var(--shadow-inset);
+  flex-grow: 1;
 `;
 
 const SliderThumb = styled.div`

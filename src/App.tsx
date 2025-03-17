@@ -138,6 +138,8 @@ const StyledSelect = styled.select`
   background-color: white;
   font-size: 1rem;
   color: #333;
+  min-width: 0;
+  max-width: 100%; 
   width: 100%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: border-color 0.3s ease;
@@ -601,7 +603,7 @@ function App() {
     <SynthProvider>
       <AppContainer>
         <Header>
-          <Title>Virtual Piano</Title>
+          <Title>Virtual Synth</Title>
           <Subtitle>Play with your mouse or keyboard</Subtitle>
         </Header>
 
