@@ -3,13 +3,12 @@ import styled from "styled-components";
 import Keyboard from "./components/Keyboard";
 import { InstrumentPreset, NoteMapping } from "./types/audio.model";
 import { instrumentPresets } from "./utils/preset";
-import MusicTheoryVisualizer from "./components/MusicTheoryVisualizer";
-import { EyeCloseIcon, EyeOpenIcon } from "./utils/icons";
 import ControlGroup, { Slider } from "./components/ControlGroup";
 import { useSynth } from "./hooks/useSynth";
 import WaveVisualizer from "./components/WaveVisualizer";
 import { SynthProvider } from "./contexts/SynthContext";
 import { ChangeEvent } from "react";
+import CurrentNoteDisplay from "./components/NoteVisualizer";
 
 const AppContainer = styled.div`
   display: flex;
@@ -179,7 +178,7 @@ function App() {
   const [currentPreset, setCurrentPreset] = useState<InstrumentPreset>(
     instrumentPresets[0]
   );
-  const [showVisualizer, setShowVisualizer] = useState(false);
+
   const [octave, setOctave] = useState(4);
   const [adsr, setAdsrValues] = useState({
     attack: instrumentPresets[0].envelope.attack,
@@ -402,11 +401,6 @@ function App() {
     [stopSound]
   );
 
-  // Toggle visualizer
-  const toggleVisualizer = useCallback(() => {
-    setShowVisualizer((prev) => !prev);
-  }, []);
-
   // Memoized control groups to prevent unnecessary re-renders
   const octaveControls = useMemo(
     () => (
@@ -593,7 +587,7 @@ function App() {
         }
       />
     ),
-    [currentPreset.name, handlePresetChange, instrumentPresets]
+    [currentPreset.name, handlePresetChange,]
   );
 
   return (
@@ -621,11 +615,6 @@ function App() {
           </ControlPanel>
 
           <ActionContainer>
-            <ActionButton onClick={toggleVisualizer}>
-              {showVisualizer ? <>{EyeCloseIcon}</> : <>{EyeOpenIcon}</>}
-              <span>Theory</span>
-            </ActionButton>
-
             <ActionButton onClick={toggleEcho}>
               {isEchoEnabled ? "Disable Echo" : "Enable Echo"}
             </ActionButton>
@@ -633,15 +622,15 @@ function App() {
 
           <WaveVisualizer activeNotes={activeNotes} />
 
+          <CurrentNoteDisplay
+            note={activeNotes.size > 0 ? Array.from(activeNotes.keys())[0] : null}
+          />
+
           <Keyboard
             onNoteOn={handleNoteOn}
             onNoteOff={handleNoteOff}
             activeNotes={activeNotes}
           />
-
-          {showVisualizer && (
-            <MusicTheoryVisualizer activeNotes={activeNotes} />
-          )}
         </PianoContainer>
       </AppContainer>
     </SynthProvider>

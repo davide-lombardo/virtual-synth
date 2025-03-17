@@ -11,8 +11,6 @@ import { instrumentPresets } from "../utils/preset";
 type SynthContextType = {
   currentPreset: InstrumentPreset;
   setCurrentPreset: (preset: InstrumentPreset) => void;
-  showVisualizer: boolean;
-  setShowVisualizer: (show: boolean) => void;
   octave: number;
   setOctave: (octave: number) => void;
   adsr: ADSREnvelope;
@@ -32,8 +30,6 @@ const defaultPreset = instrumentPresets[0];
 const defaultContext: SynthContextType = {
   currentPreset: defaultPreset,
   setCurrentPreset: () => {},
-  showVisualizer: false,
-  setShowVisualizer: () => {},
   octave: 4,
   setOctave: () => {},
   adsr: defaultPreset.envelope,
@@ -58,10 +54,6 @@ export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
   const [currentPreset, setCurrentPreset] = useLocalStorage<InstrumentPreset>(
     "currentPreset",
     defaultPreset
-  );
-  const [showVisualizer, setShowVisualizer] = useLocalStorage<boolean>(
-    "showVisualizer",
-    false
   );
   const [filter, setFilter] = useLocalStorage<FilterSettings>(
     "filter",
@@ -88,8 +80,6 @@ export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
   const value = {
     currentPreset,
     setCurrentPreset,
-    showVisualizer,
-    setShowVisualizer,
     octave,
     setOctave,
     filter,
