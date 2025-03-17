@@ -1,19 +1,19 @@
 // const Sequencer = () => {
 //   const [state, dispatch] = useSequencerState();
-  
+
 //   const selectStep = (idx) => {
 //     dispatch(ActionCreators.setSelectedStep(idx));
 //   };
-  
+
 //   const renderSteps = (from, to) => {
 //     const st = [];
 //     for (let i = from; i < to; i++) {
 //       let cn = 'sequencer-step' + (i % 4 === 0 ? ' bar' : '');
 //       cn += (state.playingStepIndex === i) ? ' playing' : '';
 //       cn += (state.selectedStepIndex === i) ? ' editing' : '';
-      
+
 //       st.push(
-//         <button 
+//         <button
 //           key={i}
 //           className={cn}
 //           onClick={() => selectStep(i)}
@@ -24,7 +24,7 @@
 //     }
 //     return st;
 //   };
-  
+
 //   return (
 //     <div className="sequencer">
 //       <div className="sequencer-row">

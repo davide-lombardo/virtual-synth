@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 // Types
 type SliderProps = {
@@ -23,19 +23,19 @@ const StyledComponentsVariables = styled.div`
   --control-padding: 1rem;
   --control-border-radius: 10px;
   --control-gap: 0.5rem;
-  
+
   --text-color: #ccc;
   --text-size-small: 0.9rem;
   --text-size-normal: 1rem;
-  
+
   --indicator-color: #4aff83;
   --indicator-size: 10px;
-  
+
   --slider-track-width: 150px;
   --slider-track-height: 6px;
   --slider-track-color: #555;
   --slider-label-width: 100px;
-  
+
   --slider-thumb-width: 20px;
   --slider-thumb-height: 20px;
   --slider-thumb-border-color: #666;
@@ -43,7 +43,7 @@ const StyledComponentsVariables = styled.div`
   --slider-thumb-gradient-dark: #888;
   --slider-thumb-hover-light: #ccc;
   --slider-thumb-hover-dark: #aaa;
-  
+
   --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-normal: 0 2px 5px rgba(0, 0, 0, 0.3);
   --animation-duration: 0.2s;
@@ -69,7 +69,7 @@ const SectionLabel = styled.div`
   align-items: center;
 
   &::before {
-    content: '';
+    content: "";
     width: var(--indicator-size);
     height: var(--indicator-size);
     background-color: var(--indicator-color);
@@ -103,7 +103,11 @@ const SliderTrack = styled.div`
 const SliderThumb = styled.div`
   width: var(--slider-thumb-width);
   height: var(--slider-thumb-height);
-  background: linear-gradient(145deg, var(--slider-thumb-gradient-dark), var(--slider-thumb-gradient-light));
+  background: linear-gradient(
+    145deg,
+    var(--slider-thumb-gradient-dark),
+    var(--slider-thumb-gradient-light)
+  );
   border: 2px solid var(--slider-thumb-border-color);
   border-radius: 50%;
   position: absolute;
@@ -114,7 +118,11 @@ const SliderThumb = styled.div`
   transition: background var(--animation-duration) ease;
 
   &:hover {
-    background: linear-gradient(145deg, var(--slider-thumb-hover-dark), var(--slider-thumb-hover-light));
+    background: linear-gradient(
+      145deg,
+      var(--slider-thumb-hover-dark),
+      var(--slider-thumb-hover-light)
+    );
   }
 `;
 
@@ -133,9 +141,16 @@ const calculatePosition = (value: number, min: number, max: number): number => {
   return ((value - min) / (max - min)) * 100;
 };
 
-export const Slider: React.FC<SliderProps> = ({ label, min, max, value, onChange, step = 1 }) => {
+export const Slider: React.FC<SliderProps> = ({
+  label,
+  min,
+  max,
+  value,
+  onChange,
+  step = 1,
+}) => {
   const position = calculatePosition(value, min, max);
-  
+
   return (
     <SliderContainer>
       <SliderLabel>{label}</SliderLabel>
@@ -161,16 +176,14 @@ const ControlGroup: React.FC<ControlGroupProps> = ({ title, controls }) => {
     <StyledComponentsVariables>
       <GroupContainer>
         <SectionLabel>{title}</SectionLabel>
-        {Array.isArray(controls) ? (
-          controls.map((sliderProps, index) => (
-            <Slider
-              key={`${title}-${sliderProps.label}-${index}`}
-              {...sliderProps}
-            />
-          ))
-        ) : (
-          controls
-        )}
+        {Array.isArray(controls)
+          ? controls.map((sliderProps, index) => (
+              <Slider
+                key={`${title}-${sliderProps.label}-${index}`}
+                {...sliderProps}
+              />
+            ))
+          : controls}
       </GroupContainer>
     </StyledComponentsVariables>
   );

@@ -27,7 +27,6 @@ export class SynthEngine {
     masterVolume: 1.0,
   };
 
-
   private ADSR = { attack: 0.2, decay: 0, sustain: 1, release: 0.3 };
   private readonly UNISON_WIDTH = 8;
   private readonly FFT_SIZE = 2048;
@@ -72,7 +71,7 @@ export class SynthEngine {
 
   private applySettings() {
     if (!this.audioContext) return;
-    
+
     this.masterGain!.gain.value = this.settings.masterVolume;
     this.filterNode!.type = this.settings.filter.type;
     this.filterNode!.frequency.value = this.settings.filter.frequency;

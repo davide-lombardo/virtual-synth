@@ -1,10 +1,15 @@
-export type OscillatorType = 'sine' | 'square' | 'sawtooth' | 'triangle' | 'custom';
+export type OscillatorType =
+  | "sine"
+  | "square"
+  | "sawtooth"
+  | "triangle"
+  | "custom";
 
 export interface ADSREnvelope {
-  attack: number;   // Time in seconds
-  decay: number;    // Time in seconds
-  sustain: number;  // Level (0-1)
-  release: number;  // Time in seconds
+  attack: number; // Time in seconds
+  decay: number; // Time in seconds
+  sustain: number; // Level (0-1)
+  release: number; // Time in seconds
 }
 
 export interface FilterSettings {
@@ -24,7 +29,7 @@ export interface SynthSettings {
   oscillator: {
     type: OscillatorType;
     detune: number;
-    mix: number[]; 
+    mix: number[];
   };
   envelope: ADSREnvelope;
   filter: FilterSettings;

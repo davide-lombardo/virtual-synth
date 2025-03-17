@@ -67,7 +67,7 @@ const ChordScaleItem = styled.div`
   padding: 0.75rem;
   border-radius: 6px;
   background-color: #f8f8f8;
-  
+
   &:hover {
     background-color: #f0f0f0;
   }

@@ -1,5 +1,10 @@
 import React, { createContext, ReactNode } from "react";
-import { ADSREnvelope, EffectSettings, FilterSettings, InstrumentPreset } from "../types/audio.model";
+import {
+  ADSREnvelope,
+  EffectSettings,
+  FilterSettings,
+  InstrumentPreset,
+} from "../types/audio.model";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { instrumentPresets } from "../utils/preset";
 
@@ -22,7 +27,7 @@ type SynthContextType = {
   setIsEchoEnabled: (enabled: boolean) => void;
 };
 
-const defaultPreset = instrumentPresets[0]
+const defaultPreset = instrumentPresets[0];
 
 const defaultContext: SynthContextType = {
   currentPreset: defaultPreset,
@@ -50,14 +55,35 @@ type SynthProviderProps = {
 };
 
 export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
-  const [currentPreset, setCurrentPreset] = useLocalStorage<InstrumentPreset>("currentPreset", defaultPreset);
-  const [showVisualizer, setShowVisualizer] = useLocalStorage<boolean>("showVisualizer", false);
-  const [filter, setFilter] = useLocalStorage<FilterSettings>("filter", defaultPreset.filter);
+  const [currentPreset, setCurrentPreset] = useLocalStorage<InstrumentPreset>(
+    "currentPreset",
+    defaultPreset
+  );
+  const [showVisualizer, setShowVisualizer] = useLocalStorage<boolean>(
+    "showVisualizer",
+    false
+  );
+  const [filter, setFilter] = useLocalStorage<FilterSettings>(
+    "filter",
+    defaultPreset.filter
+  );
   const [octave, setOctave] = useLocalStorage<number>("octave", 4);
-  const [adsr, setAdsrValues] = useLocalStorage<ADSREnvelope>("adsr", defaultContext.adsr);
-  const [masterVolume, setMasterVolume] = useLocalStorage<number>("masterVolume", 0.5);
-  const [echoSettings, setEchoSettings] = useLocalStorage<EffectSettings>("echoSettings", defaultContext.echoSettings);
-  const [isEchoEnabled, setIsEchoEnabled] = useLocalStorage<boolean>("isEchoEnabled", false);
+  const [adsr, setAdsrValues] = useLocalStorage<ADSREnvelope>(
+    "adsr",
+    defaultContext.adsr
+  );
+  const [masterVolume, setMasterVolume] = useLocalStorage<number>(
+    "masterVolume",
+    0.5
+  );
+  const [echoSettings, setEchoSettings] = useLocalStorage<EffectSettings>(
+    "echoSettings",
+    defaultContext.echoSettings
+  );
+  const [isEchoEnabled, setIsEchoEnabled] = useLocalStorage<boolean>(
+    "isEchoEnabled",
+    false
+  );
 
   const value = {
     currentPreset,

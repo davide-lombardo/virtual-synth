@@ -593,7 +593,7 @@ function App() {
         }
       />
     ),
-    [currentPreset.name, handlePresetChange]
+    [currentPreset.name, handlePresetChange, instrumentPresets]
   );
 
   return (

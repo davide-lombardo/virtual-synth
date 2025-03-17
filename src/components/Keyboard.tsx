@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import styled from 'styled-components';
-import { NoteMapping } from '../types/audio.model';
-import { keyboardMapping } from '../utils/keyboard';
+import React, { useEffect } from "react";
+import styled from "styled-components";
+import { NoteMapping } from "../types/audio.model";
+import { keyboardMapping } from "../utils/keyboard";
 
 interface KeyboardProps {
   onNoteOn: (note: NoteMapping) => void;
@@ -46,17 +46,18 @@ const Key = styled.div<KeyProps>`
     margin: ${(props) => (props.$isBlack ? "0 -10px" : "0")};
   }
 
-  ${props => getKeyBackground(props.$isBlack, props.$isActive)}
-  ${props => getKeyShadows(props.$isBlack, props.$isActive)}
-  transform: ${(props) => props.$isActive ? 'translateY(2px)' : 'none'};
+  ${(props) => getKeyBackground(props.$isBlack, props.$isActive)}
+  ${(props) => getKeyShadows(props.$isBlack, props.$isActive)}
+  transform: ${(props) => (props.$isActive ? "translateY(2px)" : "none")};
 
   &:hover {
-    ${props => getKeyHoverBackground(props.$isBlack, props.$isActive)}
-    ${props => getKeyHoverShadows(props.$isBlack, props.$isActive)}
+    ${(props) => getKeyHoverBackground(props.$isBlack, props.$isActive)}
+    ${(props) => getKeyHoverShadows(props.$isBlack, props.$isActive)}
   }
 
-  &:active, &.key-pressed {
-    ${props => getActiveKeyStyles(props.$isBlack)}
+  &:active,
+  &.key-pressed {
+    ${(props) => getActiveKeyStyles(props.$isBlack)}
     transform: translateY(2px);
   }
 `;
@@ -184,9 +185,13 @@ const getActiveKeyStyles = (isBlack: boolean) => {
 //   }
 // `;
 
-const Keyboard: React.FC<KeyboardProps> = ({ onNoteOn, onNoteOff, activeNotes }) => {
+const Keyboard: React.FC<KeyboardProps> = ({
+  onNoteOn,
+  onNoteOff,
+  activeNotes,
+}) => {
   const isBlackKey = (note: string): boolean => {
-    return note.includes('#') || note.includes('b');
+    return note.includes("#") || note.includes("b");
   };
 
   const handleMouseDown = (note: NoteMapping) => onNoteOn(note);
@@ -194,14 +199,18 @@ const Keyboard: React.FC<KeyboardProps> = ({ onNoteOn, onNoteOff, activeNotes })
   const handleMouseLeave = (note: NoteMapping) => onNoteOff(note);
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    const note = keyboardMapping.find(mapping => mapping.key === event.key.toLowerCase());
+    const note = keyboardMapping.find(
+      (mapping) => mapping.key === event.key.toLowerCase()
+    );
     if (note) {
       onNoteOn(note);
     }
   };
 
   const handleKeyUp = (event: KeyboardEvent) => {
-    const note = keyboardMapping.find(mapping => mapping.key === event.key.toLowerCase());
+    const note = keyboardMapping.find(
+      (mapping) => mapping.key === event.key.toLowerCase()
+    );
     if (note) {
       onNoteOff(note);
     }
@@ -234,20 +243,16 @@ const Keyboard: React.FC<KeyboardProps> = ({ onNoteOn, onNoteOff, activeNotes })
 
   useEffect(() => {
     window.focus();
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, [onNoteOn, onNoteOff]);
 
-  return (
-    <KeyboardContainer>
-      {renderKeys()}
-    </KeyboardContainer>
-  );
+  return <KeyboardContainer>{renderKeys()}</KeyboardContainer>;
 };
 
 export default Keyboard;

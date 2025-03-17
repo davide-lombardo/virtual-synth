@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { NoteMapping } from '../types/audio.model';
-import { useSynth } from '../hooks/useSynth';
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
+import { NoteMapping } from "../types/audio.model";
+import { useSynth } from "../hooks/useSynth";
 
 const VisualizerContainer = styled.div`
   margin-top: 1.5rem;
@@ -53,7 +53,7 @@ const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     function resizeCanvas() {
@@ -67,7 +67,7 @@ const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
     }
 
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
 
     const draw = () => {
       if (!analyserRef.current || !dataArrayRef.current || !ctx || !canvas) {
@@ -86,7 +86,7 @@ const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
 
       // Style for waveform
       ctx.lineWidth = 2;
-      ctx.strokeStyle = activeNotes.size > 0 ? '#4aff83' : '#64b5f6';
+      ctx.strokeStyle = activeNotes.size > 0 ? "#4aff83" : "#64b5f6";
       ctx.beginPath();
 
       const sliceWidth = canvas.width / dataArray.length;
@@ -110,7 +110,7 @@ const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
       // Add a glow effect when notes are playing
       if (activeNotes.size > 0) {
         ctx.shadowBlur = 10;
-        ctx.shadowColor = '#4aff83';
+        ctx.shadowColor = "#4aff83";
       } else {
         ctx.shadowBlur = 0;
       }
@@ -127,7 +127,7 @@ const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, [activeNotes]);
 
