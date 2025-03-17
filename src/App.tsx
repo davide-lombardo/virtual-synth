@@ -5,10 +5,10 @@ import { InstrumentPreset, NoteMapping } from "./types/audio.model";
 import { instrumentPresets } from "./utils/preset";
 import ControlGroup, { Slider } from "./components/ControlGroup";
 import { useSynth } from "./hooks/useSynth";
-import WaveVisualizer from "./components/WaveVisualizer";
 import { SynthProvider } from "./contexts/SynthContext";
 import { ChangeEvent } from "react";
 import CurrentNoteDisplay from "./components/NoteVisualizer";
+import WaveVisualizer from "./components/WaveVisualizer";
 
 const AppContainer = styled.div`
   display: flex;
@@ -199,7 +199,7 @@ function App() {
   const [showRotateBanner, setShowRotateBanner] = useState(false);
 
   // Use our custom synth hook
-  const { playSound, stopSound, setADSR, setVolume, setEcho, setFilter } =
+  const { playSound, stopSound, setADSR, setVolume, setEcho, setFilter, getAnalyserNode } =
     useSynth();
 
   // Load settings from localStorage
@@ -619,8 +619,7 @@ function App() {
               {isEchoEnabled ? "Disable Echo" : "Enable Echo"}
             </ActionButton>
           </ActionContainer>
-
-          <WaveVisualizer activeNotes={activeNotes} />
+<WaveVisualizer analyserNode={getAnalyserNode()}></WaveVisualizer>
 
           <CurrentNoteDisplay
             note={activeNotes.size > 0 ? Array.from(activeNotes.keys())[0] : null}

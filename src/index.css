@@ -70,6 +70,15 @@ html {
   --control-width: 40px;
   --control-height: 40px;
 
+  --color-background-dark: #141414;
+  --color-visualizer-glow: var(--color-primary);
+  --color-visualizer-line: var(--color-primary);
+  --color-visualizer-bg: var(--color-background-dark);
+
+  /* Visualizer dimensions */
+  --visualizer-height: 100px;
+  --visualizer-line-width: 2px;
+
   --1px: 0.0625rem;
   --2px: 0.125rem;
   --3px: 0.1875rem;

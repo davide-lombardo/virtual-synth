@@ -1,100 +1,91 @@
 import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
-import { NoteMapping } from "../types/audio.model";
-import { useSynth } from "../hooks/useSynth";
-
-const VisualizerContainer = styled.div`
-  margin-top: 1.5rem;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 8px;
-  padding: 1rem;
-  height: 150px;
-  width: 200px;
-  position: relative;
-  overflow: hidden;
-`;
 
 const VisualizerCanvas = styled.canvas`
   width: 100%;
-  height: 100%;
-  display: block;
+  height: var(--visualizer-height);
+  background-color: var(--color-visualizer-bg);
+  border-radius: var(--border-radius-md);
+  border: var(--2px) solid var(--color-border);
 `;
 
-const VisualizerLabel = styled.div`
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.8rem;
-  z-index: 1;
+const VisualizerContainer = styled.div`
+width: 200px;
+  padding: var(--spacing-sm);
+  background: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  border: var(--2px) solid var(--color-border);
+`;
+
+const Title = styled.h3`
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-md);
 `;
 
 interface WaveVisualizerProps {
-  activeNotes: Map<string, NoteMapping>;
+  analyserNode: AnalyserNode | null;
 }
 
-const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationRef = useRef<number | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
-  const { getAnalyserNode } = useSynth();
+const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ analyserNode }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {
-    const analyser = getAnalyserNode();
-    if (!analyser) return;
+    if (!analyserNode || !canvasRef.current) return;
 
-    analyserRef.current = analyser;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    dataArrayRef.current = dataArray;
-
-    // Set up canvas
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    function resizeCanvas() {
-      if (canvas) {
-        const { width, height } = canvas.getBoundingClientRect();
-        if (canvas.width !== width || canvas.height !== height) {
-          canvas.width = width;
-          canvas.height = height;
-        }
-      }
-    }
-
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
-      if (!analyserRef.current || !dataArrayRef.current || !ctx || !canvas) {
-        animationRef.current = requestAnimationFrame(draw);
-        return;
+      const width = canvas.width;
+      const height = canvas.height;
+
+      analyserNode.getByteTimeDomainData(dataArray);
+
+      // Calculate average signal strength
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        sum += Math.abs(dataArray[i] - 128);
       }
+      const average = sum / bufferLength;
 
-      const analyser = analyserRef.current;
-      const dataArray = dataArrayRef.current;
+      // Clear background with alpha for trail effect
+      ctx.fillStyle = getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--color-visualizer-bg");
+      ctx.fillRect(0, 0, width, height);
 
-      // Get time domain data
-      analyser.getByteTimeDomainData(dataArray);
+      ctx.lineWidth = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--visualizer-line-width"
+        )
+      );
 
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Calculate color based on signal strength
+      const hue = average * 2; // cycle through colors as signal changes
+      const saturation = 70 + average * 0.3;
+      const lightness = 45 + average * 0.3;
+      const currentColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
-      // Style for waveform
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = activeNotes.size > 0 ? "#4aff83" : "#64b5f6";
+      ctx.strokeStyle = currentColor;
+
+      // Glow effect using the same dynamic color
+      ctx.shadowBlur = average * 2;
+      ctx.shadowColor = currentColor;
+
       ctx.beginPath();
 
-      const sliceWidth = canvas.width / dataArray.length;
+      const sliceWidth = width / bufferLength;
       let x = 0;
 
-      for (let i = 0; i < dataArray.length; i++) {
-        const v = (dataArray[i] - 128) / 128.0; // Adjusted to center around zero
-        const y = (v * canvas.height) / 2 + canvas.height / 2; // Adjusted to center vertically
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * height) / 2;
 
         if (i === 0) {
           ctx.moveTo(x, y);
@@ -105,35 +96,29 @@ const WaveVisualizer: React.FC<WaveVisualizerProps> = ({ activeNotes }) => {
         x += sliceWidth;
       }
 
+      ctx.lineTo(width, height / 2);
       ctx.stroke();
 
-      // Add a glow effect when notes are playing
-      if (activeNotes.size > 0) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "#4aff83";
-      } else {
-        ctx.shadowBlur = 0;
-      }
-
-      // Request next frame
-      animationRef.current = requestAnimationFrame(draw);
+      animationFrameRef.current = requestAnimationFrame(draw);
     };
 
-    // Start animation
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+
     draw();
 
-    // Clean up
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
-      window.removeEventListener("resize", resizeCanvas);
     };
-  }, [activeNotes]);
+  }, [analyserNode]);
 
   return (
     <VisualizerContainer>
-      <VisualizerLabel>WAVEFORM</VisualizerLabel>
+      <Title>Waveform</Title>
       <VisualizerCanvas ref={canvasRef} />
     </VisualizerContainer>
   );
