@@ -1,6 +1,7 @@
 import React, { createContext, ReactNode } from "react";
 import { ADSREnvelope, EffectSettings, FilterSettings, InstrumentPreset } from "../types/audio.model";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { instrumentPresets } from "../utils/preset";
 
 type SynthContextType = {
   currentPreset: InstrumentPreset;
@@ -21,21 +22,7 @@ type SynthContextType = {
   setIsEchoEnabled: (enabled: boolean) => void;
 };
 
-const defaultPreset: InstrumentPreset = {
-  name: 'Grand Piano',
-  oscillator: 'sine',
-  envelope: {
-    attack: 0.005,
-    decay: 0.1,
-    sustain: 0.7,
-    release: 0.3,
-  },
-  filter: {
-    type: 'lowpass',
-    frequency: 5000,
-    Q: 1,
-  },
-};
+const defaultPreset = instrumentPresets[0]
 
 const defaultContext: SynthContextType = {
   currentPreset: defaultPreset,

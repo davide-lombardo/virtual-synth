@@ -8,10 +8,10 @@ export function useSynth() {
     synthRef.current = new SynthEngine();
 
     return () => {
-      if (synthRef.current) {
+      if (synthRef.current?.dispose) {
         synthRef.current.dispose();
-        synthRef.current = null;
       }
+      synthRef.current = null;
     };
   }, []);
 
@@ -74,5 +74,6 @@ export function useSynth() {
     setEcho,
     getAnalyserNode,
     getAudioData,
+    synthRef
   };
 }
