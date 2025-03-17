@@ -5,7 +5,7 @@ import { InstrumentPreset, NoteMapping } from "./types/audio.model";
 import { instrumentPresets } from "./utils/preset";
 import MusicTheoryVisualizer from "./components/MusicTheoryVisualizer";
 import { EyeCloseIcon, EyeOpenIcon } from "./utils/icons";
-import ControlGroup from "./components/ControlGroup";
+import ControlGroup, { Slider } from "./components/ControlGroup";
 import { useSynth } from "./hooks/useSynth";
 import WaveVisualizer from "./components/WaveVisualizer";
 import { SynthProvider } from "./contexts/SynthContext";
@@ -53,7 +53,7 @@ const PianoContainer = styled.div`
   position: relative;
 `;
 
-const VisualizerToggle = styled.button`
+const ActionButton = styled.button`
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -149,27 +149,14 @@ const StyledSelect = styled.select`
   }
 `;
 
-const EchoToggle = styled.button`
+const ActionContainer = styled.div`
   display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--color-primary);
-  color: var(--color-black);
-  border: none;
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  font-size: var(--font-size-base);
-
-  &:hover {
-    background-color: var(--color-primary-dark);
-  }
-
-  svg {
-    width: 1.2rem;
-    height: 1.2rem;
-  }
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
+
+// Filter type options
+type FilterType = 'lowpass' | 'highpass' | 'bandpass' | 'notch';
 
 function App() {
   const [activeNotes, setActiveNotes] = useState<Map<string, NoteMapping>>(
@@ -193,6 +180,7 @@ function App() {
     feedback: 0.4,
   });
   const [isEchoEnabled, setIsEchoEnabled] = useState(true);
+  const [filterType, setFilterType] = useState<FilterType>('lowpass');
 
   // Use our custom synth hook
   const { playSound, stopSound, setADSR, setVolume, setEcho, setFilter } =
@@ -205,12 +193,14 @@ function App() {
     const savedMasterVolume = localStorage.getItem("masterVolume");
     const savedEchoSettings = localStorage.getItem("echoSettings");
     const savedIsEchoEnabled = localStorage.getItem("isEchoEnabled");
+    const savedFilterType = localStorage.getItem("filterType");
 
     if (savedOctave) setOctave(parseInt(savedOctave, 10));
     if (savedAdsr) setAdsrValues(JSON.parse(savedAdsr));
     if (savedMasterVolume) setMasterVolume(parseFloat(savedMasterVolume));
     if (savedEchoSettings) setEchoSettings(JSON.parse(savedEchoSettings));
     if (savedIsEchoEnabled) setIsEchoEnabled(savedIsEchoEnabled === "true");
+    if (savedFilterType) setFilterType(savedFilterType as FilterType);
   }, []);
 
   // Save settings to localStorage
@@ -234,6 +224,10 @@ function App() {
     localStorage.setItem("isEchoEnabled", isEchoEnabled.toString());
   }, [isEchoEnabled]);
 
+  useEffect(() => {
+    localStorage.setItem("filterType", filterType);
+  }, [filterType]);
+
   // Apply ADSR and volume changes
   useEffect(() => {
     setADSR(adsr);
@@ -251,15 +245,15 @@ function App() {
     }
   }, [echoSettings, setEcho, isEchoEnabled]);
 
-  // Set filter when currentPreset changes
+  // Set filter when currentPreset or filterType changes
   useEffect(() => {
     setFilter({
       frequency: currentPreset.filter.frequency,
       Q: currentPreset.filter.Q,
+      type: filterType,
     });
-  }, [currentPreset.filter.frequency, currentPreset.filter.Q, setFilter]);
+  }, [currentPreset.filter.frequency, currentPreset.filter.Q, filterType, setFilter]);
 
-  // Handle preset change
   const handlePresetChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
       const selected = instrumentPresets.find((p) => p.name === e.target.value);
@@ -271,9 +265,22 @@ function App() {
           sustain: selected.envelope.sustain,
           release: selected.envelope.release,
         });
+        
+        // Only update filter type if present in the preset
+        if (selected.filter.type) {
+          setFilterType(selected.filter.type as FilterType);
+        }
       }
     },
-    [setCurrentPreset, setAdsrValues]
+    []
+  );
+
+  // Handle filter type change
+  const handleFilterTypeChange = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      setFilterType(e.target.value as FilterType);
+    },
+    []
   );
 
   // Handle filter changes
@@ -282,19 +289,14 @@ function App() {
       const value = parseFloat(e.target.value);
       setCurrentPreset((prevPreset) => {
         const updatedPreset = { ...prevPreset };
-        const updatedFilter = { ...updatedPreset.filter };
-
-        if (type === "frequency") {
-          updatedFilter.frequency = value;
-        } else {
-          updatedFilter.Q = value;
-        }
-
-        updatedPreset.filter = updatedFilter;
+        updatedPreset.filter = { 
+          ...updatedPreset.filter,
+          [type]: value 
+        };
         return updatedPreset;
       });
     },
-    [setCurrentPreset]
+    []
   );
 
   // Handle ADSR changes
@@ -306,16 +308,15 @@ function App() {
       const value = parseFloat(e.target.value);
       setAdsrValues((prev) => ({ ...prev, [param]: value }));
     },
-    [setAdsrValues]
+    []
   );
 
   // Handle volume changes
   const handleVolumeChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const value = parseFloat(e.target.value);
-      setMasterVolume(value);
+      setMasterVolume(parseFloat(e.target.value));
     },
-    [setMasterVolume]
+    []
   );
 
   // Handle echo changes
@@ -327,13 +328,13 @@ function App() {
       const value = parseFloat(e.target.value);
       setEchoSettings((prev) => ({ ...prev, [param]: value }));
     },
-    [setEchoSettings]
+    []
   );
 
   // Toggle echo
   const toggleEcho = useCallback(() => {
     setIsEchoEnabled((prev) => !prev);
-  }, [setIsEchoEnabled]);
+  }, []);
 
   // Note handling
   const handleNoteOn = useCallback(
@@ -360,7 +361,7 @@ function App() {
   // Toggle visualizer
   const toggleVisualizer = useCallback(() => {
     setShowVisualizer((prev) => !prev);
-  }, [setShowVisualizer]);
+  }, []);
 
   // Memoized control groups to prevent unnecessary re-renders
   const octaveControls = useMemo(
@@ -382,32 +383,47 @@ function App() {
         }
       />
     ),
-    [octave, setOctave]
+    [octave]
   );
 
   const filterControls = useMemo(() => (
     <ControlGroup
-        title="Filter"
-        controls={[
-          {
-            label: "FRQ",
-            min: 100,
-            max: 5000,
-            value: currentPreset.filter.frequency,
-            onChange: (e) => handleFilterChange(e, "frequency"),
-          },
-          {
-            label: "Q",
-            min: 0.1,
-            max: 10,
-            step: 0.1,
-            value: currentPreset.filter.Q,
-            onChange: (e) => handleFilterChange(e, "Q"),
-          },
-        ]}
-      />
-  ), [currentPreset, handleFilterChange]);
-
+      title="Filter"
+      controls={
+        <>
+          <div style={{ marginBottom: "0.8rem" }}>
+            <StyledSelect
+              value={filterType}
+              onChange={handleFilterTypeChange}
+              aria-label="Filter Type"
+            >
+              <option value="lowpass">Low Pass</option>
+              <option value="highpass">High Pass</option>
+              <option value="bandpass">Band Pass</option>
+              <option value="notch">Notch</option>
+            </StyledSelect>
+          </div>
+          
+          <Slider
+            label="FRQ"
+            min={100}
+            max={5000}
+            value={currentPreset.filter.frequency}
+            onChange={(e) => handleFilterChange(e, "frequency")}
+          />
+          <Slider
+            label="Q"
+            min={0.1}
+            max={10}
+            step={0.1}
+            value={currentPreset.filter.Q}
+            onChange={(e) => handleFilterChange(e, "Q")}
+          />
+        </>
+      }
+    />
+  ), [currentPreset.filter.frequency, currentPreset.filter.Q, filterType, handleFilterChange, handleFilterTypeChange]);
+ 
   const masterControls = useMemo(() => (
     <ControlGroup
       title="Master"
@@ -498,22 +514,22 @@ function App() {
 
   const presetControls = useMemo(() => (
     <ControlGroup
-    title="Preset"
-    controls={
-      <StyledSelect
-        value={currentPreset.name}
-        onChange={handlePresetChange}
-        aria-label="Instrument Preset"
-      >
-        {instrumentPresets.map((preset) => (
-          <option key={preset.name} value={preset.name}>
-            {preset.name}
-          </option>
-        ))}
-      </StyledSelect>
-    }
-  />
-  ), [currentPreset, handlePresetChange]);
+      title="Preset"
+      controls={
+        <StyledSelect
+          value={currentPreset.name}
+          onChange={handlePresetChange}
+          aria-label="Instrument Preset"
+        >
+          {instrumentPresets.map((preset) => (
+            <option key={preset.name} value={preset.name}>
+              {preset.name}
+            </option>
+          ))}
+        </StyledSelect>
+      }
+    />
+  ), [currentPreset.name, handlePresetChange]);
 
   return (
     <SynthProvider>
@@ -533,16 +549,16 @@ function App() {
             {presetControls}
           </ControlPanel>
 
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <VisualizerToggle onClick={toggleVisualizer}>
+          <ActionContainer>
+            <ActionButton onClick={toggleVisualizer}>
               {showVisualizer ? <>{EyeCloseIcon}</> : <>{EyeOpenIcon}</>}
               <span>Theory</span>
-            </VisualizerToggle>
+            </ActionButton>
 
-            <EchoToggle onClick={toggleEcho}>
+            <ActionButton onClick={toggleEcho}>
               {isEchoEnabled ? "Disable Echo" : "Enable Echo"}
-            </EchoToggle>
-          </div>
+            </ActionButton>
+          </ActionContainer>
 
           <WaveVisualizer activeNotes={activeNotes} />
 

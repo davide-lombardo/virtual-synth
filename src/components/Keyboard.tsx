@@ -160,29 +160,29 @@ const getActiveKeyStyles = (isBlack: boolean) => {
   `;
 };
 
-interface KeyLabelProps {
-  $isBlack: boolean;
-}
+// interface KeyLabelProps {
+//   $isBlack: boolean;
+// }
 
-const KeyLabel = styled.div<KeyLabelProps>`
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 12px;
-  color: ${props => props.$isBlack ? '#fff' : '#555'};
+// const KeyLabel = styled.div<KeyLabelProps>`
+//   position: absolute;
+//   bottom: 10px;
+//   left: 0;
+//   right: 0;
+//   text-align: center;
+//   font-size: 12px;
+//   color: ${props => props.$isBlack ? '#fff' : '#555'};
 
-  @media (max-width: 768px) {
-    font-size: 10px;
-    bottom: 8px;
-  }
+//   @media (max-width: 768px) {
+//     font-size: 10px;
+//     bottom: 8px;
+//   }
 
-  @media (max-width: 480px) {
-    font-size: 8px;
-    bottom: 5px;
-  }
-`;
+//   @media (max-width: 480px) {
+//     font-size: 8px;
+//     bottom: 5px;
+//   }
+// `;
 
 const Keyboard: React.FC<KeyboardProps> = ({ onNoteOn, onNoteOff, activeNotes }) => {
   const isBlackKey = (note: string): boolean => {

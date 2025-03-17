@@ -133,7 +133,7 @@ const calculatePosition = (value: number, min: number, max: number): number => {
   return ((value - min) / (max - min)) * 100;
 };
 
-const Slider: React.FC<SliderProps> = ({ label, min, max, value, onChange, step = 1 }) => {
+export const Slider: React.FC<SliderProps> = ({ label, min, max, value, onChange, step = 1 }) => {
   const position = calculatePosition(value, min, max);
   
   return (

@@ -46,7 +46,7 @@ export function useSynth() {
     synthRef.current?.setVolume(volume);
   }, []);
 
-  const setFilter = useCallback((params: { frequency: number; Q: number }) => {
+  const setFilter = useCallback((params: { frequency: number; Q: number; type: BiquadFilterType }) => {
     synthRef.current?.setFilter(params);
   }, []);
 
