@@ -9,7 +9,7 @@ import ControlGroup, { Slider } from "./components/ControlGroup";
 import { useSynth } from "./hooks/useSynth";
 import WaveVisualizer from "./components/WaveVisualizer";
 import { SynthProvider } from "./contexts/SynthContext";
-import { ChangeEvent } from 'react';
+import { ChangeEvent } from "react";
 
 const AppContainer = styled.div`
   display: flex;
@@ -155,8 +155,22 @@ const ActionContainer = styled.div`
   margin-bottom: 1rem;
 `;
 
+const RotateBanner = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #ffcc00;
+  color: black;
+  text-align: center;
+  padding: 1rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+  z-index: 1000;
+`;
+
 // Filter type options
-type FilterType = 'lowpass' | 'highpass' | 'bandpass' | 'notch';
+type FilterType = "lowpass" | "highpass" | "bandpass" | "notch";
 
 function App() {
   const [activeNotes, setActiveNotes] = useState<Map<string, NoteMapping>>(
@@ -180,7 +194,10 @@ function App() {
     feedback: 0.4,
   });
   const [isEchoEnabled, setIsEchoEnabled] = useState(true);
-  const [filterType, setFilterType] = useState<FilterType>('lowpass');
+  const [filterType, setFilterType] = useState<FilterType>("lowpass");
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [showRotateBanner, setShowRotateBanner] = useState(false);
 
   // Use our custom synth hook
   const { playSound, stopSound, setADSR, setVolume, setEcho, setFilter } =
@@ -252,7 +269,40 @@ function App() {
       Q: currentPreset.filter.Q,
       type: filterType,
     });
-  }, [currentPreset.filter.frequency, currentPreset.filter.Q, filterType, setFilter]);
+  }, [
+    currentPreset.filter.frequency,
+    currentPreset.filter.Q,
+    filterType,
+    setFilter,
+  ]);
+
+  // Detect if the device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth <= 768
+      );
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
+
+  // Show the banner for 5 seconds if the user is on a mobile device
+  useEffect(() => {
+    if (isMobile) {
+      setShowRotateBanner(true);
+      const timer = setTimeout(() => {
+        setShowRotateBanner(false);
+      }, 5000); // Hide banner after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile]);
 
   const handlePresetChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
@@ -265,7 +315,7 @@ function App() {
           sustain: selected.envelope.sustain,
           release: selected.envelope.release,
         });
-        
+
         // Only update filter type if present in the preset
         if (selected.filter.type) {
           setFilterType(selected.filter.type as FilterType);
@@ -289,9 +339,9 @@ function App() {
       const value = parseFloat(e.target.value);
       setCurrentPreset((prevPreset) => {
         const updatedPreset = { ...prevPreset };
-        updatedPreset.filter = { 
+        updatedPreset.filter = {
           ...updatedPreset.filter,
-          [type]: value 
+          [type]: value,
         };
         return updatedPreset;
       });
@@ -312,19 +362,13 @@ function App() {
   );
 
   // Handle volume changes
-  const handleVolumeChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setMasterVolume(parseFloat(e.target.value));
-    },
-    []
-  );
+  const handleVolumeChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setMasterVolume(parseFloat(e.target.value));
+  }, []);
 
   // Handle echo changes
   const handleEchoChange = useCallback(
-    (
-      e: ChangeEvent<HTMLInputElement>,
-      param: "mix" | "time" | "feedback"
-    ) => {
+    (e: ChangeEvent<HTMLInputElement>, param: "mix" | "time" | "feedback") => {
       const value = parseFloat(e.target.value);
       setEchoSettings((prev) => ({ ...prev, [param]: value }));
     },
@@ -386,150 +430,171 @@ function App() {
     [octave]
   );
 
-  const filterControls = useMemo(() => (
-    <ControlGroup
-      title="Filter"
-      controls={
-        <>
-          <div style={{ marginBottom: "0.8rem" }}>
-            <StyledSelect
-              value={filterType}
-              onChange={handleFilterTypeChange}
-              aria-label="Filter Type"
-            >
-              <option value="lowpass">Low Pass</option>
-              <option value="highpass">High Pass</option>
-              <option value="bandpass">Band Pass</option>
-              <option value="notch">Notch</option>
-            </StyledSelect>
-          </div>
-          
-          <Slider
-            label="FRQ"
-            min={100}
-            max={5000}
-            value={currentPreset.filter.frequency}
-            onChange={(e) => handleFilterChange(e, "frequency")}
-          />
-          <Slider
-            label="Q"
-            min={0.1}
-            max={10}
-            step={0.1}
-            value={currentPreset.filter.Q}
-            onChange={(e) => handleFilterChange(e, "Q")}
-          />
-        </>
-      }
-    />
-  ), [currentPreset.filter.frequency, currentPreset.filter.Q, filterType, handleFilterChange, handleFilterTypeChange]);
- 
-  const masterControls = useMemo(() => (
-    <ControlGroup
-      title="Master"
-      controls={[
-        {
-          label: "VOL",
-          min: 0,
-          max: 1,
-          step: 0.01,
-          value: masterVolume,
-          onChange: handleVolumeChange,
-        },
-      ]}
-    />
-  ), [masterVolume, handleVolumeChange]);
+  const filterControls = useMemo(
+    () => (
+      <ControlGroup
+        title="Filter"
+        controls={
+          <>
+            <div style={{ marginBottom: "0.8rem" }}>
+              <StyledSelect
+                value={filterType}
+                onChange={handleFilterTypeChange}
+                aria-label="Filter Type"
+              >
+                <option value="lowpass">Low Pass</option>
+                <option value="highpass">High Pass</option>
+                <option value="bandpass">Band Pass</option>
+                <option value="notch">Notch</option>
+              </StyledSelect>
+            </div>
 
-  const envelopeControls = useMemo(() => (
-    <ControlGroup
-      title="Envelope"
-      controls={[
-        {
-          label: "ATK",
-          min: 0.01,
-          max: 2,
-          step: 0.01,
-          value: adsr.attack,
-          onChange: (e) => handleADSRChange(e, "attack"),
-        },
-        {
-          label: "DEC",
-          min: 0.01,
-          max: 2,
-          step: 0.01,
-          value: adsr.decay,
-          onChange: (e) => handleADSRChange(e, "decay"),
-        },
-        {
-          label: "SUS",
-          min: 0,
-          max: 1,
-          step: 0.01,
-          value: adsr.sustain,
-          onChange: (e) => handleADSRChange(e, "sustain"),
-        },
-        {
-          label: "REL",
-          min: 0.01,
-          max: 3,
-          step: 0.01,
-          value: adsr.release,
-          onChange: (e) => handleADSRChange(e, "release"),
-        },
-      ]}
-    />
-  ), [adsr, handleADSRChange]);
+            <Slider
+              label="FRQ"
+              min={100}
+              max={5000}
+              value={currentPreset.filter.frequency}
+              onChange={(e) => handleFilterChange(e, "frequency")}
+            />
+            <Slider
+              label="Q"
+              min={0.1}
+              max={10}
+              step={0.1}
+              value={currentPreset.filter.Q}
+              onChange={(e) => handleFilterChange(e, "Q")}
+            />
+          </>
+        }
+      />
+    ),
+    [
+      currentPreset.filter.frequency,
+      currentPreset.filter.Q,
+      filterType,
+      handleFilterChange,
+      handleFilterTypeChange,
+    ]
+  );
 
-  const echoControls = useMemo(() => (
-    <ControlGroup
-      title="Echo"
-      controls={[
-        {
-          label: "MIX",
-          min: 0,
-          max: 1,
-          step: 0.01,
-          value: echoSettings.mix,
-          onChange: (e) => handleEchoChange(e, "mix"),
-        },
-        {
-          label: "TIM",
-          min: 0.05,
-          max: 1,
-          step: 0.01,
-          value: echoSettings.time,
-          onChange: (e) => handleEchoChange(e, "time"),
-        },
-        {
-          label: "FBK",
-          min: 0,
-          max: 0.9,
-          step: 0.01,
-          value: echoSettings.feedback,
-          onChange: (e) => handleEchoChange(e, "feedback"),
-        },
-      ]}
-    />
-  ), [echoSettings, handleEchoChange]);
+  const masterControls = useMemo(
+    () => (
+      <ControlGroup
+        title="Master"
+        controls={[
+          {
+            label: "VOL",
+            min: 0,
+            max: 1,
+            step: 0.01,
+            value: masterVolume,
+            onChange: handleVolumeChange,
+          },
+        ]}
+      />
+    ),
+    [masterVolume, handleVolumeChange]
+  );
 
-  const presetControls = useMemo(() => (
-    <ControlGroup
-      title="Preset"
-      controls={
-        <StyledSelect
-          value={currentPreset.name}
-          onChange={handlePresetChange}
-          aria-label="Instrument Preset"
-        >
-          {instrumentPresets.map((preset) => (
-            <option key={preset.name} value={preset.name}>
-              {preset.name}
-            </option>
-          ))}
-        </StyledSelect>
-      }
-    />
-  ), [currentPreset.name, handlePresetChange]);
+  const envelopeControls = useMemo(
+    () => (
+      <ControlGroup
+        title="Envelope"
+        controls={[
+          {
+            label: "ATK",
+            min: 0.01,
+            max: 2,
+            step: 0.01,
+            value: adsr.attack,
+            onChange: (e) => handleADSRChange(e, "attack"),
+          },
+          {
+            label: "DEC",
+            min: 0.01,
+            max: 2,
+            step: 0.01,
+            value: adsr.decay,
+            onChange: (e) => handleADSRChange(e, "decay"),
+          },
+          {
+            label: "SUS",
+            min: 0,
+            max: 1,
+            step: 0.01,
+            value: adsr.sustain,
+            onChange: (e) => handleADSRChange(e, "sustain"),
+          },
+          {
+            label: "REL",
+            min: 0.01,
+            max: 3,
+            step: 0.01,
+            value: adsr.release,
+            onChange: (e) => handleADSRChange(e, "release"),
+          },
+        ]}
+      />
+    ),
+    [adsr, handleADSRChange]
+  );
+
+  const echoControls = useMemo(
+    () => (
+      <ControlGroup
+        title="Echo"
+        controls={[
+          {
+            label: "MIX",
+            min: 0,
+            max: 1,
+            step: 0.01,
+            value: echoSettings.mix,
+            onChange: (e) => handleEchoChange(e, "mix"),
+          },
+          {
+            label: "TIM",
+            min: 0.05,
+            max: 1,
+            step: 0.01,
+            value: echoSettings.time,
+            onChange: (e) => handleEchoChange(e, "time"),
+          },
+          {
+            label: "FBK",
+            min: 0,
+            max: 0.9,
+            step: 0.01,
+            value: echoSettings.feedback,
+            onChange: (e) => handleEchoChange(e, "feedback"),
+          },
+        ]}
+      />
+    ),
+    [echoSettings, handleEchoChange]
+  );
+
+  const presetControls = useMemo(
+    () => (
+      <ControlGroup
+        title="Preset"
+        controls={
+          <StyledSelect
+            value={currentPreset.name}
+            onChange={handlePresetChange}
+            aria-label="Instrument Preset"
+          >
+            {instrumentPresets.map((preset) => (
+              <option key={preset.name} value={preset.name}>
+                {preset.name}
+              </option>
+            ))}
+          </StyledSelect>
+        }
+      />
+    ),
+    [currentPreset.name, handlePresetChange]
+  );
 
   return (
     <SynthProvider>
@@ -540,6 +605,12 @@ function App() {
         </Header>
 
         <PianoContainer>
+          {/* Show the rotate device banner if on mobile */}
+          {showRotateBanner && (
+            <RotateBanner>
+              Please rotate your device for a better experience.
+            </RotateBanner>
+          )}
           <ControlPanel>
             {octaveControls}
             {filterControls}
