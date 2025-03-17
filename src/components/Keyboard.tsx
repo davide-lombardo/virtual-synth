@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import { NoteMapping } from "../types/audio.model";
-import { keyboardMapping } from "../utils/keyboard";
+import { generateKeyboardMapping } from "../utils/keyboard";
 
 interface KeyboardProps {
   onNoteOn: (note: NoteMapping) => void;
   onNoteOff: (note: NoteMapping) => void;
   activeNotes: Map<string, any>;
+  octave: number;
 }
 
 const KeyboardContainer = styled.div`
@@ -161,34 +162,11 @@ const getActiveKeyStyles = (isBlack: boolean) => {
   `;
 };
 
-// interface KeyLabelProps {
-//   $isBlack: boolean;
-// }
-
-// const KeyLabel = styled.div<KeyLabelProps>`
-//   position: absolute;
-//   bottom: 10px;
-//   left: 0;
-//   right: 0;
-//   text-align: center;
-//   font-size: 12px;
-//   color: ${props => props.$isBlack ? '#fff' : '#555'};
-
-//   @media (max-width: 768px) {
-//     font-size: 10px;
-//     bottom: 8px;
-//   }
-
-//   @media (max-width: 480px) {
-//     font-size: 8px;
-//     bottom: 5px;
-//   }
-// `;
-
 const Keyboard: React.FC<KeyboardProps> = ({
   onNoteOn,
   onNoteOff,
   activeNotes,
+  octave,
 }) => {
   const isBlackKey = (note: string): boolean => {
     return note.includes("#") || note.includes("b");
@@ -199,8 +177,8 @@ const Keyboard: React.FC<KeyboardProps> = ({
   const handleMouseLeave = (note: NoteMapping) => onNoteOff(note);
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    const note = keyboardMapping.find(
-      (mapping) => mapping.key === event.key.toLowerCase()
+    const note = generateKeyboardMapping(octave).find(
+      (mapping: NoteMapping) => mapping.key === event.key.toLowerCase()
     );
     if (note) {
       onNoteOn(note);
@@ -208,8 +186,8 @@ const Keyboard: React.FC<KeyboardProps> = ({
   };
 
   const handleKeyUp = (event: KeyboardEvent) => {
-    const note = keyboardMapping.find(
-      (mapping) => mapping.key === event.key.toLowerCase()
+    const note = generateKeyboardMapping(octave).find(
+      (mapping: NoteMapping) => mapping.key === event.key.toLowerCase()
     );
     if (note) {
       onNoteOff(note);
@@ -217,7 +195,9 @@ const Keyboard: React.FC<KeyboardProps> = ({
   };
 
   const renderKeys = () => {
-    return keyboardMapping.map((mapping: NoteMapping) => {
+    const mappings = generateKeyboardMapping(octave);
+
+    return mappings.map((mapping: NoteMapping) => {
       const isBlack = isBlackKey(mapping.note);
       const isActive = activeNotes.has(mapping.note);
 
@@ -250,9 +230,8 @@ const Keyboard: React.FC<KeyboardProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [onNoteOn, onNoteOff]);
+  }, [onNoteOn, onNoteOff, octave]);
 
   return <KeyboardContainer>{renderKeys()}</KeyboardContainer>;
 };
-
 export default Keyboard;

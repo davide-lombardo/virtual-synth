@@ -630,6 +630,7 @@ function App() {
             onNoteOn={handleNoteOn}
             onNoteOff={handleNoteOff}
             activeNotes={activeNotes}
+            octave={octave}
           />
         </PianoContainer>
       </AppContainer>

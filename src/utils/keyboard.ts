@@ -88,36 +88,31 @@ const NOTES = {
   "A-7": 3520,
   "A#7": 3729.31,
   "B-7": 3951.07,
-  "C-8": 4186.01,
+  "C-8": 4186.01
 };
+export const generateKeyboardMapping = (octave: number): NoteMapping[] => {
+  const baseNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const keys = ["z", "s", "x", "d", "c", "v", "g", "b", "h", "n", "j", "m"];
 
-export const keyboardMapping: NoteMapping[] = [
-  // Lower octave (C3 - B3)
-  { key: "z", note: "C-3", frequency: NOTES["C-3"], keyCode: 90 },
-  { key: "s", note: "C#3", frequency: NOTES["C#3"], keyCode: 83 },
-  { key: "x", note: "D-3", frequency: NOTES["D-3"], keyCode: 88 },
-  { key: "d", note: "D#3", frequency: NOTES["D#3"], keyCode: 68 },
-  { key: "c", note: "E-3", frequency: NOTES["E-3"], keyCode: 67 },
-  { key: "v", note: "F-3", frequency: NOTES["F-3"], keyCode: 86 },
-  { key: "g", note: "F#3", frequency: NOTES["F#3"], keyCode: 71 },
-  { key: "b", note: "G-3", frequency: NOTES["G-3"], keyCode: 66 },
-  { key: "h", note: "G#3", frequency: NOTES["G#3"], keyCode: 72 },
-  { key: "n", note: "A-3", frequency: NOTES["A-3"], keyCode: 78 },
-  { key: "j", note: "A#3", frequency: NOTES["A#3"], keyCode: 74 },
-  { key: "m", note: "B-3", frequency: NOTES["B-3"], keyCode: 77 },
+  const mappings = baseNotes.map((note, index) => {
+    let noteKey = `${note}-${octave}` as keyof typeof NOTES;
 
-  // Upper octave (C4 - C5)
-  { key: "q", note: "C-4", frequency: NOTES["C-4"], keyCode: 81 },
-  { key: "2", note: "C#4", frequency: NOTES["C#4"], keyCode: 50 },
-  { key: "w", note: "D-4", frequency: NOTES["D-4"], keyCode: 87 },
-  { key: "3", note: "D#4", frequency: NOTES["D#4"], keyCode: 51 },
-  { key: "e", note: "E-4", frequency: NOTES["E-4"], keyCode: 69 },
-  { key: "r", note: "F-4", frequency: NOTES["F-4"], keyCode: 82 },
-  { key: "5", note: "F#4", frequency: NOTES["F#4"], keyCode: 53 },
-  { key: "t", note: "G-4", frequency: NOTES["G-4"], keyCode: 84 },
-  { key: "6", note: "G#4", frequency: NOTES["G#4"], keyCode: 54 },
-  { key: "y", note: "A-4", frequency: NOTES["A-4"], keyCode: 89 },
-  { key: "7", note: "A#4", frequency: NOTES["A#4"], keyCode: 55 },
-  { key: "u", note: "B-4", frequency: NOTES["B-4"], keyCode: 85 },
-  { key: "i", note: "C-5", frequency: NOTES["C-5"], keyCode: 73 },
-];
+    if (note.includes("#")) {
+      noteKey = noteKey.replace("-", "") as keyof typeof NOTES;
+    }
+
+    if (!(noteKey in NOTES)) {
+      console.warn(`Note key ${noteKey} not found in NOTES. Skipping.`);
+      return null;
+    }
+
+    return {
+      key: keys[index % keys.length],
+      note: noteKey,
+      frequency: NOTES[noteKey],
+      keyCode: keys[index % keys.length].charCodeAt(0),
+    };
+  }).filter(Boolean) as NoteMapping[];
+
+  return mappings;
+};

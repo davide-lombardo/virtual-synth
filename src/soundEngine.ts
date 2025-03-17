@@ -286,12 +286,4 @@ export class SynthEngine {
   public getAnalyserNode(): AnalyserNode | null {
     return this.analyserNode;
   }
-  public getAudioData(): Uint8Array | null {
-    if (!this.analyserNode) return null;
-
-    const dataArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-    this.analyserNode.getByteTimeDomainData(dataArray);
-
-    return dataArray;
-  }
 }

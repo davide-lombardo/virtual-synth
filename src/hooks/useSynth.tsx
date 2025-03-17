@@ -61,12 +61,10 @@ export function useSynth() {
   );
 
   const getAnalyserNode = useCallback(() => {
-    return synthRef.current?.getAnalyserNode() || null;
+    const analyserNode = synthRef.current?.getAnalyserNode() || null;
+    return analyserNode;
   }, []);
 
-  const getAudioData = useCallback(() => {
-    return synthRef.current?.getAudioData() || null;
-  }, []);
 
   return {
     playSound,
@@ -76,7 +74,6 @@ export function useSynth() {
     setFilter,
     setEcho,
     getAnalyserNode,
-    getAudioData,
     synthRef,
   };
 }
