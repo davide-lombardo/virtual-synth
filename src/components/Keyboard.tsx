@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import { NoteMapping } from "../types/audio.model";
 import { generateKeyboardMapping } from "../utils/keyboard";
@@ -168,6 +168,8 @@ const Keyboard: React.FC<KeyboardProps> = ({
   activeNotes,
   octave,
 }) => {
+  const pressedKeys = useRef<Set<string>>(new Set());
+
   const isBlackKey = (note: string): boolean => {
     return note.includes("#") || note.includes("b");
   };
@@ -177,18 +179,38 @@ const Keyboard: React.FC<KeyboardProps> = ({
   const handleMouseLeave = (note: NoteMapping) => onNoteOff(note);
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+
+    // Prevent default to stop key repeat
+    event.preventDefault();
+
+    // If key is already pressed, do nothing
+    if (pressedKeys.current.has(key)) {
+      return;
+    }
+
+    // Add key to pressed keys
+    pressedKeys.current.add(key);
+
     const note = generateKeyboardMapping(octave).find(
-      (mapping: NoteMapping) => mapping.key === event.key.toLowerCase()
+      (mapping: NoteMapping) => mapping.key === key
     );
+
     if (note) {
       onNoteOn(note);
     }
   };
 
   const handleKeyUp = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+
+    // Remove key from pressed keys
+    pressedKeys.current.delete(key);
+
     const note = generateKeyboardMapping(octave).find(
-      (mapping: NoteMapping) => mapping.key === event.key.toLowerCase()
+      (mapping: NoteMapping) => mapping.key === key
     );
+
     if (note) {
       onNoteOff(note);
     }
@@ -210,16 +232,17 @@ const Keyboard: React.FC<KeyboardProps> = ({
           onMouseUp={() => handleMouseUp(mapping)}
           onMouseLeave={() => handleMouseLeave(mapping)}
           aria-label={`Key ${mapping.note}`}
-        >
-          {/* <KeyLabel $isBlack={isBlack}>
-            {mapping.key.toUpperCase()}
-            <br />
-            {mapping.note}
-          </KeyLabel> */}
-        </Key>
+        />
       );
     });
   };
+
+  // Clean up pressed keys when component unmounts
+  useEffect(() => {
+    return () => {
+      pressedKeys.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     window.focus();
@@ -234,4 +257,5 @@ const Keyboard: React.FC<KeyboardProps> = ({
 
   return <KeyboardContainer>{renderKeys()}</KeyboardContainer>;
 };
+
 export default Keyboard;

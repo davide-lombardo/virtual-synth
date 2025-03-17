@@ -199,8 +199,15 @@ function App() {
   const [showRotateBanner, setShowRotateBanner] = useState(false);
 
   // Use our custom synth hook
-  const { playSound, stopSound, setADSR, setVolume, setEcho, setFilter, getAnalyserNode } =
-    useSynth();
+  const {
+    playSound,
+    stopSound,
+    setADSR,
+    setVolume,
+    setEcho,
+    setFilter,
+    getAnalyserNode,
+  } = useSynth();
 
   // Load settings from localStorage
   useEffect(() => {
@@ -587,7 +594,7 @@ function App() {
         }
       />
     ),
-    [currentPreset.name, handlePresetChange,]
+    [currentPreset.name, handlePresetChange]
   );
 
   return (
@@ -619,10 +626,12 @@ function App() {
               {isEchoEnabled ? "Disable Echo" : "Enable Echo"}
             </ActionButton>
           </ActionContainer>
-<WaveVisualizer analyserNode={getAnalyserNode()}></WaveVisualizer>
+          <WaveVisualizer analyserNode={getAnalyserNode()}></WaveVisualizer>
 
           <CurrentNoteDisplay
-            note={activeNotes.size > 0 ? Array.from(activeNotes.keys())[0] : null}
+            note={
+              activeNotes.size > 0 ? Array.from(activeNotes.keys())[0] : null
+            }
           />
 
           <Keyboard
