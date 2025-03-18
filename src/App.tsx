@@ -23,24 +23,19 @@ import {
 } from "./styles/AppStyles";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 
-// Filter type options
-type FilterType = "lowpass" | "highpass" | "bandpass" | "notch";
+const DEFAULT_PRESET = instrumentPresets[0];
+const FILTER_TYPES = ["lowpass", "highpass", "bandpass", "notch"] as const;
+type FilterType = (typeof FILTER_TYPES)[number];
 
 function App() {
+  // State hooks
   const [activeNotes, setActiveNotes] = useState<Map<string, NoteMapping>>(
     new Map()
   );
-  const [currentPreset, setCurrentPreset] = useState<InstrumentPreset>(
-    instrumentPresets[0]
-  );
-
+  const [currentPreset, setCurrentPreset] =
+    useState<InstrumentPreset>(DEFAULT_PRESET);
   const [octave, setOctave] = useState(4);
-  const [adsr, setAdsrValues] = useState({
-    attack: instrumentPresets[0].envelope.attack,
-    decay: instrumentPresets[0].envelope.decay,
-    sustain: instrumentPresets[0].envelope.sustain,
-    release: instrumentPresets[0].envelope.release,
-  });
+  const [adsr, setAdsrValues] = useState(DEFAULT_PRESET.envelope);
   const [masterVolume, setMasterVolume] = useState(0.8);
   const [echoSettings, setEchoSettings] = useState({
     mix: 0.3,
@@ -49,11 +44,9 @@ function App() {
   });
   const [isEchoEnabled, setIsEchoEnabled] = useState(true);
   const [filterType, setFilterType] = useState<FilterType>("lowpass");
-
   const [isMobile, setIsMobile] = useState(false);
   const [showRotateBanner, setShowRotateBanner] = useState(false);
 
-  // Use our custom synth hook
   const {
     playSound,
     stopSound,

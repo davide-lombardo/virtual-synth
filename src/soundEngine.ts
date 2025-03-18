@@ -27,7 +27,7 @@ export class SynthEngine {
     masterVolume: 1.0,
   };
 
-  private ADSR = { attack: 0.2, decay: 0, sustain: 1, release: 0.3 };
+  private ADSR = this.settings.envelope;
   private readonly UNISON_WIDTH = 8;
   private readonly FFT_SIZE = 2048;
   private readonly SMOOTHING = 0.4;
@@ -94,11 +94,6 @@ export class SynthEngine {
     this.dryGain!.connect(this.analyserNode!);
     this.wetGain!.connect(this.analyserNode!);
     this.analyserNode!.connect(this.audioContext.destination);
-  }
-
-  public updateSettings(newSettings: Partial<SynthSettings>) {
-    this.settings = { ...this.settings, ...newSettings };
-    this.applySettings();
   }
 
   public resume() {
