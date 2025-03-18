@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   SliderContainer,
   SliderLabel,
@@ -39,14 +39,58 @@ export const Slider: React.FC<SliderProps> = ({
   step = 1,
 }) => {
   const position = calculatePosition(value, min, max);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+
+  const updateValueFromPosition = (clientX: number) => {
+    if (!sliderRef.current) return;
+
+    const rect = sliderRef.current.getBoundingClientRect();
+    const percentage = (clientX - rect.left) / rect.width;
+    const newValue = min + percentage * (max - min);
+    const clampedValue = Math.min(max, Math.max(min, newValue));
+    const steppedValue = Math.round(clampedValue / step) * step;
+
+    const event = {
+      target: {
+        value: steppedValue.toString(),
+      },
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    onChange(event);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    isDragging.current = true;
+    updateValueFromPosition(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    updateValueFromPosition(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+  };
 
   return (
     <SliderContainer>
       <SliderLabel>{label}</SliderLabel>
-      <SliderTrack>
+      <SliderTrack
+       ref={sliderRef}
+       onTouchStart={handleTouchStart}
+       onTouchMove={handleTouchMove}
+       onTouchEnd={handleTouchEnd}
+       onTouchCancel={handleTouchEnd}
+      >
         <SliderThumb style={{ left: `${position}%` }} />
         <SliderInput
           type="range"
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
           min={min}
           max={max}
           step={step}

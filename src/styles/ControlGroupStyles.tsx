@@ -86,6 +86,7 @@ export const SliderTrack = styled.div`
   position: relative;
   box-shadow: var(--shadow-inset);
   flex-grow: 1;
+  touch-action: none;
 `;
 
 export const SliderThumb = styled.div`
