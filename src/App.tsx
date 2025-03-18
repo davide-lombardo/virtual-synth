@@ -60,21 +60,24 @@ function App() {
     getAnalyserNode,
   } = useSynth();
 
-  // Load settings from localStorage
-  useEffect(() => {
-    const savedOctave = localStorage.getItem("octave");
-    const savedAdsr = localStorage.getItem("adsr");
-    const savedMasterVolume = localStorage.getItem("masterVolume");
-    const savedEchoSettings = localStorage.getItem("echoSettings");
-    const savedIsEchoEnabled = localStorage.getItem("isEchoEnabled");
-    const savedFilterType = localStorage.getItem("filterType");
+  function loadFromLocalStorage<T>(key: string, defaultValue: T): T {
+    const savedValue = localStorage.getItem(key);
+    return savedValue ? JSON.parse(savedValue) : defaultValue;
+  }
 
-    if (savedOctave) setOctave(parseInt(savedOctave, 10));
-    if (savedAdsr) setAdsrValues(JSON.parse(savedAdsr));
-    if (savedMasterVolume) setMasterVolume(parseFloat(savedMasterVolume));
-    if (savedEchoSettings) setEchoSettings(JSON.parse(savedEchoSettings));
-    if (savedIsEchoEnabled) setIsEchoEnabled(savedIsEchoEnabled === "true");
-    if (savedFilterType) setFilterType(savedFilterType as FilterType);
+  useEffect(() => {
+    setOctave(loadFromLocalStorage("octave", 4));
+    setAdsrValues(loadFromLocalStorage("adsr", DEFAULT_PRESET.envelope));
+    setMasterVolume(loadFromLocalStorage("masterVolume", 0.8));
+    setEchoSettings(
+      loadFromLocalStorage("echoSettings", {
+        mix: 0.3,
+        time: 0.3,
+        feedback: 0.4,
+      })
+    );
+    setIsEchoEnabled(loadFromLocalStorage("isEchoEnabled", true));
+    setFilterType(loadFromLocalStorage("filterType", "lowpass"));
   }, []);
 
   // Save settings to localStorage
@@ -85,60 +88,42 @@ function App() {
   useLocalStorage("isEchoEnabled", isEchoEnabled);
   useLocalStorage("filterType", filterType);
 
-  // Apply ADSR and volume changes
   useEffect(() => {
     setADSR(adsr);
-  }, [adsr, setADSR]);
-
-  useEffect(() => {
     setVolume(masterVolume);
-  }, [masterVolume, setVolume]);
-
-  useEffect(() => {
-    if (isEchoEnabled) {
-      setEcho(echoSettings);
-    } else {
-      setEcho({ mix: 0, time: 0, feedback: 0 });
-    }
-  }, [echoSettings, setEcho, isEchoEnabled]);
-
-  // Set filter when currentPreset or filterType changes
-  useEffect(() => {
     setFilter({
       frequency: currentPreset.filter.frequency,
       Q: currentPreset.filter.Q,
       type: filterType,
     });
+    setEcho(isEchoEnabled ? echoSettings : { mix: 0, time: 0, feedback: 0 });
   }, [
-    currentPreset.filter.frequency,
-    currentPreset.filter.Q,
+    adsr,
+    masterVolume,
     filterType,
+    echoSettings,
+    isEchoEnabled,
+    setADSR,
+    setVolume,
     setFilter,
+    setEcho,
   ]);
 
-  // Add keyboard listener for help toggle
+  // Listener for help toggle and octave settings
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Existing help toggle
-      if (!isMobile && (e.key === "?" || e.key === "/")) {
-        e.preventDefault();
-        setIsHelpOpen((prev) => !prev);
-        return;
-      }
+      if (isMobile) return;
   
-      // Add octave control
-      if (!isMobile) {
-        switch (e.key.toLowerCase()) {
-          case 'z':
-            e.preventDefault();
-            setOctave((prev) => Math.max(1, prev - 1));
-            break;
-          case 'x':
-            e.preventDefault();
-            setOctave((prev) => Math.min(7, prev + 1));
-            break;
-        }
-      }
+      e.preventDefault();
+  
+      const actions: Record<string, () => void> = {
+        "?": () => setIsHelpOpen((prev) => !prev),
+        "/": () => setIsHelpOpen((prev) => !prev),
+        "z": () => setOctave((prev) => Math.max(1, prev - 1)),
+        "x": () => setOctave((prev) => Math.min(7, prev + 1)),
+      };
+  
+      actions[e.key.toLowerCase()]?.();
     };
   
     window.addEventListener("keydown", handleKeyPress);

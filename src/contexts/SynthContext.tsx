@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode } from "react";
+import React, { createContext, ReactNode, useMemo } from "react";
 import {
   ADSREnvelope,
   EffectSettings,
@@ -51,33 +51,15 @@ type SynthProviderProps = {
 };
 
 export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
-  const [currentPreset, setCurrentPreset] = useLocalStorage<InstrumentPreset>(
-    "currentPreset",
-    defaultPreset
-  );
-  const [filter, setFilter] = useLocalStorage<FilterSettings>(
-    "filter",
-    defaultPreset.filter
-  );
-  const [octave, setOctave] = useLocalStorage<number>("octave", 4);
-  const [adsr, setAdsrValues] = useLocalStorage<ADSREnvelope>(
-    "adsr",
-    defaultContext.adsr
-  );
-  const [masterVolume, setMasterVolume] = useLocalStorage<number>(
-    "masterVolume",
-    0.5
-  );
-  const [echoSettings, setEchoSettings] = useLocalStorage<EffectSettings>(
-    "echoSettings",
-    defaultContext.echoSettings
-  );
-  const [isEchoEnabled, setIsEchoEnabled] = useLocalStorage<boolean>(
-    "isEchoEnabled",
-    false
-  );
+  const [currentPreset, setCurrentPreset] = useLocalStorage("currentPreset", instrumentPresets[0]);
+  const [filter, setFilter] = useLocalStorage("filter", currentPreset.filter);
+  const [octave, setOctave] = useLocalStorage("octave", 4);
+  const [adsr, setAdsrValues] = useLocalStorage("adsr", currentPreset.envelope);
+  const [masterVolume, setMasterVolume] = useLocalStorage("masterVolume", 0.5);
+  const [echoSettings, setEchoSettings] = useLocalStorage("echoSettings", { mix: 0.2, time: 0.3, feedback: 0.4 });
+  const [isEchoEnabled, setIsEchoEnabled] = useLocalStorage("isEchoEnabled", false);
 
-  const value = {
+  const value = useMemo(() => ({
     currentPreset,
     setCurrentPreset,
     octave,
@@ -92,9 +74,7 @@ export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
     setEchoSettings,
     isEchoEnabled,
     setIsEchoEnabled,
-  };
+  }), [currentPreset, octave, filter, adsr, masterVolume, echoSettings, isEchoEnabled]);
 
-  return (
-    <SynthContext.Provider value={value}>{children}</SynthContext.Provider>
-  );
+  return <SynthContext.Provider value={value}>{children}</SynthContext.Provider>;
 };
