@@ -20,8 +20,10 @@ import {
   RotateBanner,
   ActionContainer,
   ActionButton,
+  HelpButton,
 } from "./styles/AppStyles";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import KeyboardHelp from "./components/KeyboardHelp";
 
 const DEFAULT_PRESET = instrumentPresets[0];
 const FILTER_TYPES = ["lowpass", "highpass", "bandpass", "notch"] as const;
@@ -46,6 +48,7 @@ function App() {
   const [filterType, setFilterType] = useState<FilterType>("lowpass");
   const [isMobile, setIsMobile] = useState(false);
   const [showRotateBanner, setShowRotateBanner] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const {
     playSound,
@@ -112,6 +115,35 @@ function App() {
     filterType,
     setFilter,
   ]);
+
+  // Add keyboard listener for help toggle
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Existing help toggle
+      if (!isMobile && (e.key === "?" || e.key === "/")) {
+        e.preventDefault();
+        setIsHelpOpen((prev) => !prev);
+        return;
+      }
+  
+      // Add octave control
+      if (!isMobile) {
+        switch (e.key.toLowerCase()) {
+          case 'z':
+            e.preventDefault();
+            setOctave((prev) => Math.max(1, prev - 1));
+            break;
+          case 'x':
+            e.preventDefault();
+            setOctave((prev) => Math.min(7, prev + 1));
+            break;
+        }
+      }
+    };
+  
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [isMobile]);
 
   // Detect if the device is mobile
   useEffect(() => {
@@ -221,8 +253,8 @@ function App() {
   const handleNoteOn = useCallback(
     (note: NoteMapping) => {
       setActiveNotes((prev) => new Map(prev).set(note.note, note));
-      const adjustedFrequency = note.frequency * Math.pow(2, octave - 4);
-      playSound(adjustedFrequency, note.note, currentPreset.oscillator);
+      // const adjustedFrequency = note.frequency * Math.pow(2, octave - 4);
+      playSound(note.frequency, note.note, currentPreset.oscillator);
     },
     [octave, currentPreset.oscillator, playSound]
   );
@@ -442,6 +474,20 @@ function App() {
             <RotateBanner>
               Please rotate your device for a better experience.
             </RotateBanner>
+          )}
+          {!isMobile && (
+            <>
+              <KeyboardHelp
+                isOpen={isHelpOpen}
+                onClose={() => setIsHelpOpen(false)}
+              />
+              <HelpButton
+                onClick={() => setIsHelpOpen(true)}
+                aria-label="Show keyboard shortcuts"
+              >
+                ?
+              </HelpButton>
+            </>
           )}
           <ControlPanel>
             {octaveControls}

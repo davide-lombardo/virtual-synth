@@ -88,31 +88,61 @@ const NOTES = {
   "A-7": 3520,
   "A#7": 3729.31,
   "B-7": 3951.07,
-  "C-8": 4186.01
+  "C-8": 4186.01,
 };
 export const generateKeyboardMapping = (octave: number): NoteMapping[] => {
-  const baseNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-  const keys = ["z", "s", "x", "d", "c", "v", "g", "b", "h", "n", "j", "m"];
+  const baseNotes = [
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+  ];
+  // White keys: a,s,d,f,g,h,j
+  // Black keys: w,e,t,y,u
+  const keys = [
+    "a", // C
+    "w", // C#
+    "s", // D
+    "e", // D#
+    "d", // E
+    "f", // F
+    "t", // F#
+    "g", // G
+    "y", // G#
+    "h", // A
+    "u", // A#
+    "j", // B
+  ];
 
-  const mappings = baseNotes.map((note, index) => {
-    let noteKey = `${note}-${octave}` as keyof typeof NOTES;
+  const mappings = baseNotes
+    .map((note, index) => {
+      let noteKey = `${note}-${octave}` as keyof typeof NOTES;
 
-    if (note.includes("#")) {
-      noteKey = noteKey.replace("-", "") as keyof typeof NOTES;
-    }
+      if (note.includes("#")) {
+        noteKey = noteKey.replace("-", "") as keyof typeof NOTES;
+      }
 
-    if (!(noteKey in NOTES)) {
-      console.warn(`Note key ${noteKey} not found in NOTES. Skipping.`);
-      return null;
-    }
+      if (!(noteKey in NOTES)) {
+        console.warn(`Note key ${noteKey} not found in NOTES. Skipping.`);
+        return null;
+      }
 
-    return {
-      key: keys[index % keys.length],
-      note: noteKey,
-      frequency: NOTES[noteKey],
-      keyCode: keys[index % keys.length].charCodeAt(0),
-    };
-  }).filter(Boolean) as NoteMapping[];
+      return {
+        key: keys[index % keys.length],
+        note: noteKey,
+        frequency: NOTES[noteKey],
+        keyCode: keys[index % keys.length].charCodeAt(0),
+      };
+    })
+    .filter(Boolean) as NoteMapping[];
 
   return mappings;
 };

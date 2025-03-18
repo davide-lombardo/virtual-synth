@@ -129,7 +129,7 @@ export const StyledSelect = styled.select`
   font-size: 1rem;
   color: #333;
   min-width: 0;
-  max-width: 100%; 
+  max-width: 100%;
   width: 100%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: border-color 0.3s ease;
@@ -158,4 +158,30 @@ export const RotateBanner = styled.div`
   font-weight: bold;
   font-size: 1.2rem;
   z-index: 1000;
+`;
+
+export const HelpButton = styled.button`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--color-black);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+
+  &:hover {
+    background: var(--color-primary);
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
