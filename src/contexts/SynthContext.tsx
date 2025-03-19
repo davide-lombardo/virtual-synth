@@ -1,11 +1,10 @@
-import React, { createContext, ReactNode, useMemo } from "react";
+import React, { createContext, ReactNode, useMemo, useState } from "react";
 import {
   ADSREnvelope,
   EffectSettings,
   FilterSettings,
   InstrumentPreset,
 } from "../types/audio.model";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 import { instrumentPresets } from "../utils/preset";
 
 type SynthContextType = {
@@ -51,13 +50,13 @@ type SynthProviderProps = {
 };
 
 export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
-  const [currentPreset, setCurrentPreset] = useLocalStorage("currentPreset", instrumentPresets[0]);
-  const [filter, setFilter] = useLocalStorage("filter", currentPreset.filter);
-  const [octave, setOctave] = useLocalStorage("octave", 4);
-  const [adsr, setAdsrValues] = useLocalStorage("adsr", currentPreset.envelope);
-  const [masterVolume, setMasterVolume] = useLocalStorage("masterVolume", 0.5);
-  const [echoSettings, setEchoSettings] = useLocalStorage("echoSettings", { mix: 0.2, time: 0.3, feedback: 0.4 });
-  const [isEchoEnabled, setIsEchoEnabled] = useLocalStorage("isEchoEnabled", false);
+  const [currentPreset, setCurrentPreset] = useState(instrumentPresets[0]);
+  const [filter, setFilter] = useState(currentPreset.filter);
+  const [octave, setOctave] = useState(4);
+  const [adsr, setAdsrValues] = useState(currentPreset.envelope);
+  const [masterVolume, setMasterVolume] = useState(0.5);
+  const [echoSettings, setEchoSettings] = useState({ mix: 0.2, time: 0.3, feedback: 0.4 });
+  const [isEchoEnabled, setIsEchoEnabled] = useState(false);
 
   const value = useMemo(() => ({
     currentPreset,

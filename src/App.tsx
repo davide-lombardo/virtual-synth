@@ -22,7 +22,6 @@ import {
   ActionButton,
   HelpButton,
 } from "./styles/AppStyles";
-import { useLocalStorage } from "./hooks/useLocalStorage";
 import KeyboardHelp from "./components/KeyboardHelp";
 
 const DEFAULT_PRESET = instrumentPresets[0];
@@ -60,34 +59,6 @@ function App() {
     getAnalyserNode,
   } = useSynth();
 
-  function loadFromLocalStorage<T>(key: string, defaultValue: T): T {
-    const savedValue = localStorage.getItem(key);
-    return savedValue ? JSON.parse(savedValue) : defaultValue;
-  }
-
-  useEffect(() => {
-    setOctave(loadFromLocalStorage("octave", 4));
-    setAdsrValues(loadFromLocalStorage("adsr", DEFAULT_PRESET.envelope));
-    setMasterVolume(loadFromLocalStorage("masterVolume", 0.8));
-    setEchoSettings(
-      loadFromLocalStorage("echoSettings", {
-        mix: 0.3,
-        time: 0.3,
-        feedback: 0.4,
-      })
-    );
-    setIsEchoEnabled(loadFromLocalStorage("isEchoEnabled", true));
-    setFilterType(loadFromLocalStorage("filterType", "lowpass"));
-  }, []);
-
-  // Save settings to localStorage
-  useLocalStorage("octave", octave);
-  useLocalStorage("adsr", adsr);
-  useLocalStorage("masterVolume", masterVolume);
-  useLocalStorage("echoSettings", echoSettings);
-  useLocalStorage("isEchoEnabled", isEchoEnabled);
-  useLocalStorage("filterType", filterType);
-
   useEffect(() => {
     setADSR(adsr);
     setVolume(masterVolume);
@@ -113,19 +84,19 @@ function App() {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (isMobile) return;
-  
+
       e.preventDefault();
-  
+
       const actions: Record<string, () => void> = {
         "?": () => setIsHelpOpen((prev) => !prev),
         "/": () => setIsHelpOpen((prev) => !prev),
         "z": () => setOctave((prev) => Math.max(1, prev - 1)),
         "x": () => setOctave((prev) => Math.min(7, prev + 1)),
       };
-  
+
       actions[e.key.toLowerCase()]?.();
     };
-  
+
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isMobile]);
@@ -238,10 +209,9 @@ function App() {
   const handleNoteOn = useCallback(
     (note: NoteMapping) => {
       setActiveNotes((prev) => new Map(prev).set(note.note, note));
-      // const adjustedFrequency = note.frequency * Math.pow(2, octave - 4);
       playSound(note.frequency, note.note, currentPreset.oscillator);
     },
-    [octave, currentPreset.oscillator, playSound]
+    [currentPreset.oscillator, playSound]
   );
 
   const handleNoteOff = useCallback(
