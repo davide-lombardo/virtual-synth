@@ -18,8 +18,13 @@ export function useSynth() {
 
   // Initialize SynthEngine on component mount
   useEffect(() => {
-    if (!engineRef.current) {
-      engineRef.current = new SynthEngine();
+    try {
+      if (!engineRef.current) {
+        engineRef.current = new SynthEngine();
+      }
+    } catch (error) {
+      console.error("Failed to initialize SynthEngine:", error);
+      alert("Audio engine initialization failed. Please check your browser settings.");
     }
 
     return () => {
@@ -68,22 +73,36 @@ export function useSynth() {
 
   const playSound = useCallback(
     (frequency: number, note: string, oscillatorType: OscillatorType) => {
-      if (engineRef.current) {
-        engineRef.current.playSound(frequency, note, oscillatorType);
+      try {
+        if (engineRef.current) {
+          engineRef.current.playSound(frequency, note, oscillatorType);
+        }
+      } catch (error) {
+        console.error("Failed to play sound:", error);
       }
     },
     []
   );
 
   const stopSound = useCallback((note: string) => {
-    if (engineRef.current) {
-      engineRef.current.stopSound(note);
+    try {
+      if (engineRef.current) {
+        engineRef.current.stopSound(note);
+      }
+    } catch (error) {
+      console.error("Failed to stop sound:", error);
     }
   }, []);
 
   const getAnalyserNode = useCallback(() => {
-    return engineRef.current ? engineRef.current.getAnalyserNode() : null;
+    try {
+      return engineRef.current ? engineRef.current.getAnalyserNode() : null;
+    } catch (error) {
+      console.error("Failed to retrieve analyser node:", error);
+      return null;
+    }
   }, []);
+
 
   return {
     playSound,

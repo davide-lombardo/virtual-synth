@@ -1,12 +1,14 @@
+import ErrorBoundary from "./components/ErrorBoundary";
 import KeyboardContent from "./components/KeyboardContent";
 import { SynthProvider } from "./contexts/SynthContext";
 
-
 function App() {
   return (
-    <SynthProvider>
-      <KeyboardContent></KeyboardContent>
-    </SynthProvider>
+    <ErrorBoundary>
+      <SynthProvider>
+        <KeyboardContent></KeyboardContent>
+      </SynthProvider>
+    </ErrorBoundary>
   );
 }
 
