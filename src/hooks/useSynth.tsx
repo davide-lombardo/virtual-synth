@@ -1,79 +1,93 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { useSynthContext } from "../contexts/SynthContext";
 import { SynthEngine } from "../soundEngine";
 
 export function useSynth() {
-  const synthRef = useRef<SynthEngine | null>(null);
+  // Create a ref to store the SynthEngine instance
+  const engineRef = useRef<SynthEngine | null>(null);
 
+  // Get all settings from context
+  const {
+    adsr,
+    filter,
+    filterType,
+    masterVolume,
+    echoSettings,
+    isEchoEnabled,
+  } = useSynthContext();
+
+  // Initialize SynthEngine on component mount
   useEffect(() => {
-    synthRef.current = new SynthEngine();
+    if (!engineRef.current) {
+      engineRef.current = new SynthEngine();
+    }
 
     return () => {
-      if (synthRef.current?.dispose) {
-        synthRef.current.dispose();
+      if (engineRef.current) {
+        engineRef.current.dispose();
+        engineRef.current = null;
       }
-      synthRef.current = null;
     };
   }, []);
 
+  useEffect(() => {
+    if (engineRef.current) {
+      engineRef.current.setADSR(adsr);
+    }
+  }, [adsr]);
+
+  useEffect(() => {
+    if (engineRef.current) {
+      engineRef.current.setVolume(masterVolume);
+    }
+  }, [masterVolume]);
+
+  useEffect(() => {
+    if (engineRef.current) {
+      // If echo is enabled, use the actual settings, otherwise set mix to 0
+      const mix = isEchoEnabled ? echoSettings.mix : 0;
+
+      engineRef.current.setEcho({
+        mix,
+        time: echoSettings.time,
+        feedback: echoSettings.feedback,
+      });
+    }
+  }, [echoSettings, isEchoEnabled]);
+
+  useEffect(() => {
+    if (engineRef.current) {
+      engineRef.current.setFilter({
+        frequency: filter.frequency,
+        Q: filter.Q,
+      });
+
+      engineRef.current.setFilterType(filterType);
+    }
+  }, [filter, filterType]);
+
   const playSound = useCallback(
-    (
-      frequency: number,
-      note: string,
-      oscillatorType: OscillatorType = "sine"
-    ) => {
-      synthRef.current?.playSound(frequency, note, oscillatorType);
+    (frequency: number, note: string, oscillatorType: OscillatorType) => {
+      if (engineRef.current) {
+        engineRef.current.playSound(frequency, note, oscillatorType);
+      }
     },
     []
   );
 
   const stopSound = useCallback((note: string) => {
-    synthRef.current?.stopSound(note);
+    if (engineRef.current) {
+      engineRef.current.stopSound(note);
+    }
   }, []);
-
-  const setADSR = useCallback(
-    (adsr: {
-      attack: number;
-      decay: number;
-      sustain: number;
-      release: number;
-    }) => {
-      synthRef.current?.setADSR(adsr);
-    },
-    []
-  );
-
-  const setVolume = useCallback((volume: number) => {
-    synthRef.current?.setVolume(volume);
-  }, []);
-
-  const setFilter = useCallback(
-    (params: { frequency: number; Q: number; type: BiquadFilterType }) => {
-      synthRef.current?.setFilter(params);
-    },
-    []
-  );
-
-  const setEcho = useCallback(
-    (params: { mix: number; time: number; feedback: number }) => {
-      synthRef.current?.setEcho(params);
-    },
-    []
-  );
 
   const getAnalyserNode = useCallback(() => {
-    const analyserNode = synthRef.current?.getAnalyserNode() || null;
-    return analyserNode;
+    return engineRef.current ? engineRef.current.getAnalyserNode() : null;
   }, []);
-
 
   return {
     playSound,
     stopSound,
-    setADSR,
-    setVolume,
-    setFilter,
-    setEcho,
     getAnalyserNode,
-    synthRef,
   };
 }

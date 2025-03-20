@@ -1,79 +1,90 @@
-import React, { createContext, ReactNode, useMemo, useState } from "react";
+import React, { createContext, ReactNode, useContext, useState } from "react";
 import {
-  ADSREnvelope,
-  EffectSettings,
-  FilterSettings,
   InstrumentPreset,
+  ADSREnvelope,
+  FilterSettings,
+  EffectSettings,
 } from "../types/audio.model";
 import { instrumentPresets } from "../utils/preset";
 
 type SynthContextType = {
   currentPreset: InstrumentPreset;
-  setCurrentPreset: (preset: InstrumentPreset) => void;
+  setCurrentPreset: React.Dispatch<React.SetStateAction<InstrumentPreset>>;
   octave: number;
-  setOctave: (octave: number) => void;
+  setOctave: React.Dispatch<React.SetStateAction<number>>;
   adsr: ADSREnvelope;
-  setAdsrValues: (adsr: ADSREnvelope) => void;
+  setAdsrValues: React.Dispatch<React.SetStateAction<ADSREnvelope>>;
   filter: FilterSettings;
-  setFilter: (filter: FilterSettings) => void;
+  setFilter: React.Dispatch<React.SetStateAction<FilterSettings>>;
+  filterType: BiquadFilterType;
+  setFilterType: React.Dispatch<React.SetStateAction<BiquadFilterType>>;
   masterVolume: number;
-  setMasterVolume: (volume: number) => void;
-  echoSettings: EffectSettings;
-  setEchoSettings: (settings: EffectSettings) => void;
+  setMasterVolume: React.Dispatch<React.SetStateAction<number>>;
+  echoSettings: EffectSettings & { mixBackup?: number };
+  setEchoSettings: React.Dispatch<React.SetStateAction<EffectSettings & { mixBackup?: number }>>;
   isEchoEnabled: boolean;
-  setIsEchoEnabled: (enabled: boolean) => void;
+  setIsEchoEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const defaultPreset = instrumentPresets[0];
 
-const defaultContext: SynthContextType = {
-  currentPreset: defaultPreset,
-  setCurrentPreset: () => {},
-  octave: 4,
-  setOctave: () => {},
-  adsr: defaultPreset.envelope,
-  setAdsrValues: () => {},
-  filter: defaultPreset.filter,
-  setFilter: () => {},
-  masterVolume: 0.5,
-  setMasterVolume: () => {},
-  echoSettings: { mix: 0.2, time: 0.3, feedback: 0.4 },
-  setEchoSettings: () => {},
-  isEchoEnabled: false,
-  setIsEchoEnabled: () => {},
-};
+// Extract initial filter type from default preset or use "lowpass" as fallback
+const initialFilterType = (defaultPreset.filter.type as BiquadFilterType) || "lowpass";
 
-export const SynthContext = createContext<SynthContextType>(defaultContext);
+const SynthContext = createContext<SynthContextType | undefined>(undefined);
+
+export const useSynthContext = (): SynthContextType => {
+  const context = useContext(SynthContext);
+  if (!context) {
+    throw new Error("useSynthContext must be used within a SynthProvider");
+  }
+  return context;
+};
 
 type SynthProviderProps = {
   children: ReactNode;
 };
 
 export const SynthProvider: React.FC<SynthProviderProps> = ({ children }) => {
-  const [currentPreset, setCurrentPreset] = useState(instrumentPresets[0]);
-  const [filter, setFilter] = useState(currentPreset.filter);
-  const [octave, setOctave] = useState(4);
-  const [adsr, setAdsrValues] = useState(currentPreset.envelope);
-  const [masterVolume, setMasterVolume] = useState(0.5);
-  const [echoSettings, setEchoSettings] = useState({ mix: 0.2, time: 0.3, feedback: 0.4 });
-  const [isEchoEnabled, setIsEchoEnabled] = useState(false);
+  // Initialize all state at once to avoid cascading updates
+  const [currentPreset, setCurrentPreset] = useState<InstrumentPreset>(defaultPreset);
+  const [octave, setOctave] = useState<number>(4);
+  const [adsr, setAdsrValues] = useState<ADSREnvelope>(defaultPreset.envelope);
+  const [filterType, setFilterType] = useState<BiquadFilterType>(initialFilterType);
+  const [filter, setFilter] = useState<FilterSettings>({
+    ...defaultPreset.filter,
+    type: initialFilterType
+  });
+  const [masterVolume, setMasterVolume] = useState<number>(0.5);
+  const [echoSettings, setEchoSettings] = useState<EffectSettings & { mixBackup?: number }>({
+    mix: 0,
+    time: 0.3,
+    feedback: 0.4,
+  });
+  const [isEchoEnabled, setIsEchoEnabled] = useState<boolean>(false);
 
-  const value = useMemo(() => ({
-    currentPreset,
-    setCurrentPreset,
-    octave,
-    setOctave,
-    filter,
-    setFilter,
-    adsr,
-    setAdsrValues,
-    masterVolume,
-    setMasterVolume,
-    echoSettings,
-    setEchoSettings,
-    isEchoEnabled,
-    setIsEchoEnabled,
-  }), [currentPreset, octave, filter, adsr, masterVolume, echoSettings, isEchoEnabled]);
-
-  return <SynthContext.Provider value={value}>{children}</SynthContext.Provider>;
+  return (
+    <SynthContext.Provider
+      value={{
+        currentPreset,
+        setCurrentPreset,
+        octave,
+        setOctave,
+        adsr,
+        setAdsrValues,
+        filterType,
+        setFilterType,
+        filter,
+        setFilter,
+        masterVolume,
+        setMasterVolume,
+        echoSettings,
+        setEchoSettings,
+        isEchoEnabled,
+        setIsEchoEnabled,
+      }}
+    >
+      {children}
+    </SynthContext.Provider>
+  );
 };

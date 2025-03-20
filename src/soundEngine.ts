@@ -166,6 +166,13 @@ export class SynthEngine {
     }
   }
 
+  public setFilterType(type: BiquadFilterType) {
+    if (this.filterNode) {
+      this.filterNode.type = type;
+      this.settings.filter.type = type;
+    }
+  }
+
   public playSound(
     frequency: number,
     note: string,
